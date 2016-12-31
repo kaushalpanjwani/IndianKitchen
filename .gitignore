@@ -1,0 +1,6 @@
+*.log
+.settings/**
+.project
+target/**
+
+src/main/resources/application.properties
