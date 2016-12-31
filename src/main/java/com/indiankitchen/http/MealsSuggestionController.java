@@ -42,7 +42,7 @@ public class MealsSuggestionController {
 					MealDTO suggestedMeal = mealsService.getSuggestedMeal(
 							DishType.getByName(params.getDishType()),
 							CuisineType.valueOf(params.getCuisine().toUpperCase()),
-							params.getProtein(), params.getVegetable());
+							 params.getVegetable(),params.getProtein());
 					if (suggestedMeal != null) {
 						speechBuilder.append("Alright, I would suggest ");
 						speechBuilder.append(suggestedMeal.getName());

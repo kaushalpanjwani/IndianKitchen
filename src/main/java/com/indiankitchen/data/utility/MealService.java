@@ -54,8 +54,8 @@ public class MealService {
 		List<MealEntity> allMeals = mealRepository.findAll();
 
 		List<MealEntity> mealNames = allMeals.stream()
-				.filter(m -> m.getCuisine().equals(cuisine))
-				.filter(m -> m.getDishType().equals(dishType))
+				.filter(m -> m.getCuisine().equals(cuisine.name()))
+				.filter(m -> m.getDishType().equals(dishType.getName()))
 				.filter(m -> Arrays.asList(m.getVegetables()).containsAll(Arrays.asList(vegetables)))
 				.filter(m -> Arrays.asList(m.getProteins()).containsAll(Arrays.asList(proteins)))
 				.collect(Collectors.toList());
@@ -69,7 +69,7 @@ public class MealService {
 	}
 
 	public MealDTO addMeal(DishType dishType, CuisineType cuisine, String[] protein, String[] vegetable, String name) {
-		MealDTO newMeal = new MealDTO(name, dishType, cuisine, vegetable, protein); 
+		MealDTO newMeal = new MealDTO(name, dishType, cuisine, protein, vegetable); 
 		MealEntity savedMeal = mealRepository.save(new MealEntity(newMeal));
 		return new MealDTO(savedMeal);
 	}

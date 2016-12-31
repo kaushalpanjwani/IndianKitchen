@@ -45,10 +45,9 @@ public class Application implements CommandLineRunner{
 
 
 	private void prepareMockDBData() {
-		mealRepository.deleteAll();
-		for (MealDTO mealDTO : MealService.allMealsStartupData) {
-			mealRepository.save(new MealEntity(mealDTO));
-		}
+//		for (MealDTO mealDTO : MealService.allMealsStartupData) {
+//			mealRepository.save(new MealEntity(mealDTO));
+//		}
 
 	}
 }

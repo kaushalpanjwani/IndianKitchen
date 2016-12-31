@@ -14,7 +14,7 @@ public class MealDTO {
 	private String[] vegetables;
 	private String[] proteins;
 
-	public MealDTO(String name, DishType dishType, CuisineType cuisine, String[] vegetables, String[] proteins) {
+	public MealDTO(String name, DishType dishType, CuisineType cuisine, String[] proteins, String[] vegetables) {
 		this.name = name;
 		this.dishType = dishType;
 		this.cuisine = cuisine;

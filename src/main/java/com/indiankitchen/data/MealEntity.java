@@ -18,14 +18,7 @@ public class MealEntity extends BaseEntity{
 	public MealEntity() {
 		
 	}
-	public MealEntity(String name, String dishType, String cuisine, String[] vegetables, String[] proteins) {
-		this.name = name;
-		this.dishType = dishType;
-		this.cuisine = cuisine;
-		this.vegetables = Arrays.copyOf(vegetables, vegetables.length);
-		this.proteins = Arrays.copyOf(proteins, proteins.length);
-	}
-
+	
 	public MealEntity(MealDTO mealDTO) {
 		this.name = mealDTO.getName();
 		this.dishType = mealDTO.getDishType().toString();
