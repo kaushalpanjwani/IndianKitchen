@@ -38,7 +38,7 @@ public class MealsSuggestionController {
 				LOG.debug("Request : Metadata {} ", metadata);
 				LOG.debug("Request : Params {} ", params);
 
-				if (metadata.getIntentName().equals(IntentType.SUGGEST_A_MEAL)) {
+				if (metadata.getIntentName().equals(IntentType.SUGGEST_A_MEAL) || metadata.getIntentName().equals(IntentType.SUGGEST_ANOTHER_MEAL)) {
 					MealDTO suggestedMeal = mealsService.getSuggestedMeal(
 							DishType.getByName(params.getDishType()),
 							CuisineType.valueOf(params.getCuisine().toUpperCase()),
@@ -46,18 +46,25 @@ public class MealsSuggestionController {
 					if (suggestedMeal != null) {
 						speechBuilder.append("Alright, I would suggest ");
 						speechBuilder.append(suggestedMeal.getName());
+						speechBuilder.append(". Do you like it?");
 					} else {
 						speechBuilder.append("Sorry, unfortunately I do not know any dish which is ");
 						speechBuilder.append(params.getCuisine()).append(" ");
 						speechBuilder.append(params.getDishType()).append(". And is made of ");
 						for (int i = 0; i < params.getProtein().length; i++) {
+							if (params.getProtein()[i].equalsIgnoreCase("None"))
+								continue;
+
 							speechBuilder.append(params.getProtein()[i]).append(" and ");
 						}
 						for (int i = 0; i < params.getVegetable().length; i++) {
+							if (params.getVegetable()[i].equalsIgnoreCase("None"))
+								continue;
+
 							speechBuilder.append(params.getVegetable()[i]).append(" and ");
 						}
 						speechBuilder.delete(speechBuilder.length() - 5, speechBuilder.length());
-//						String finalResponse = speechBuilder.substring(0, speechBuilder.length() - 5); // remove last " and "
+						speechBuilder.append(". Would you like to try a different combination?");
 					}
 				} else if (metadata.getIntentName().equals(IntentType.ADD_A_MEAL)) {
 					MealDTO addedMeal = mealsService.addMeal(
@@ -66,6 +73,25 @@ public class MealsSuggestionController {
 							params.getProtein(), params.getVegetable(), params.getName());
 					speechBuilder.append("Thank you! We have successfully added ");
 					speechBuilder.append(addedMeal.getName());
+				} else if (metadata.getIntentName().equals(IntentType.SURPRISE_ME)) {
+					MealDTO suggestedMeal = mealsService.getSurpriseSuggestion();
+					speechBuilder.append("How about ");
+					speechBuilder.append(suggestedMeal.getName());
+					speechBuilder.append(". It is ").append(suggestedMeal.getCuisine().name()).append(" ").append(suggestedMeal.getDishType().getName());
+					speechBuilder.append(". You would need ");
+					for (int i = 0; i < suggestedMeal.getProteins().length; i++) {
+						if (suggestedMeal.getProteins()[i].equalsIgnoreCase("None"))
+								continue;
+						
+						speechBuilder.append(suggestedMeal.getProteins()[i]).append(" and ");
+					}
+					for (int i = 0; i < suggestedMeal.getVegetables().length; i++) {
+						if (suggestedMeal.getVegetables()[i].equalsIgnoreCase("None"))
+							continue;
+
+						speechBuilder.append(suggestedMeal.getVegetables()[i]).append(" and ");
+					}
+					speechBuilder.delete(speechBuilder.length() - 5, speechBuilder.length());
 				} else {
 					speechBuilder.append("Sorry, I cannot do that yet!");
 				}

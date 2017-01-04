@@ -91,5 +91,12 @@ public class MealService {
 		//		System.out.println(getSuggestedMeal(DishType.CURRY, CuisineType.INDIAN, new String [] {"Green Peas"}, new String [] {"Mushroom"}));
 	}
 
+	public MealDTO getSurpriseSuggestion() {
+		List<MealEntity> allMeals = mealRepository.findAll();
+		double ran = Math.random();
+		int selection = (int) Math.round(ran * (allMeals.size()-1));
+		return new MealDTO(allMeals.get(selection));
+	}
+
 
 }

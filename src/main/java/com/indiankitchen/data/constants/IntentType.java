@@ -9,6 +9,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum IntentType {
 
 	SUGGEST_A_MEAL("Recommend Meal"),
+	SUGGEST_ANOTHER_MEAL("Recommend other Meal"),
+	SURPRISE_ME("Surprise Me"),
 	ADD_A_MEAL("Add Meal");
 
 	private final String name;
