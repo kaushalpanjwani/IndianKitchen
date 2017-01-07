@@ -1,10 +1,13 @@
-package com.indiankitchen.data.utility;
+package com.indiankitchen.data.services;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +16,7 @@ import com.indiankitchen.data.MealEntity;
 import com.indiankitchen.data.constants.CuisineType;
 import com.indiankitchen.data.constants.DishType;
 import com.indiankitchen.data.repositories.MealRepository;
+import com.indiankitchen.data.utility.LocalCache;
 
 @Component
 public class MealService {
@@ -29,9 +33,15 @@ public class MealService {
 		allMealsStartupData.add(new MealDTO("Daal with Aloo Gobhi", DishType.CURRY, CuisineType.INDIAN, new String [] {"Lentils"}, new String [] {"Potato", "Cauliflower"}));
 		allMealsStartupData.add(new MealDTO("Lauki in tomato gravy with Egg burjhi", DishType.CURRY, CuisineType.INDIAN, new String [] {"Eggs"}, new String [] {"Squash"}));		
 	}
+	
+	static final Logger LOG = LoggerFactory.getLogger(MealService.class);
 
 	@Autowired
 	private MealRepository mealRepository;
+
+	@Autowired
+	private LocalCache cache;
+
 
 	public static MealDTO testGetSuggestedMeal(DishType dishType, CuisineType cuisine, String[] vegetables, String[] proteins) {
 
@@ -50,7 +60,7 @@ public class MealService {
 		}
 	}
 
-	public MealDTO getSuggestedMeal(DishType dishType, CuisineType cuisine, String[] vegetables, String[] proteins) {
+	public MealDTO getSuggestedMeal(String sessionId, DishType dishType, CuisineType cuisine, String[] vegetables, String[] proteins) {
 		List<MealEntity> allMeals = mealRepository.findAll();
 
 		List<MealEntity> mealNames = allMeals.stream()
@@ -59,10 +69,25 @@ public class MealService {
 				.filter(m -> Arrays.asList(m.getVegetables()).containsAll(Arrays.asList(vegetables)))
 				.filter(m -> Arrays.asList(m.getProteins()).containsAll(Arrays.asList(proteins)))
 				.collect(Collectors.toList());
-		if (mealNames.size() > 0) { 
+
+
+		return getRandomNotAlreadySuggestedOption(sessionId, mealNames);
+	}
+
+	private MealDTO getRandomNotAlreadySuggestedOption(String sessionId, List<MealEntity> filteredMealNames) {
+
+		Set<String> mealsAlreadySuggested = cache.getAlreadySuggestedMealsForCurrentSession(sessionId);
+		LOG.trace("Meals already suggested for Session {} - {}",sessionId, mealsAlreadySuggested);
+		List<MealEntity> mealNames = filteredMealNames.stream()
+				.filter(m -> !mealsAlreadySuggested.contains(m.getName())) // Meal is not already suggested
+				.collect(Collectors.toList());
+
+		if (mealNames.size() > 0) {
 			double ran = Math.random();
 			int selection = (int) Math.round(ran * (mealNames.size()-1));
-			return new MealDTO(mealNames.get(selection));
+			MealEntity selectedMealEntity = mealNames.get(selection);
+			cache.addToCache(sessionId,selectedMealEntity.getName());
+			return new MealDTO(selectedMealEntity);
 		} else {
 			return null;
 		}
@@ -91,11 +116,10 @@ public class MealService {
 		//		System.out.println(getSuggestedMeal(DishType.CURRY, CuisineType.INDIAN, new String [] {"Green Peas"}, new String [] {"Mushroom"}));
 	}
 
-	public MealDTO getSurpriseSuggestion() {
+	public MealDTO getSurpriseSuggestion(String sessionId) {
 		List<MealEntity> allMeals = mealRepository.findAll();
-		double ran = Math.random();
-		int selection = (int) Math.round(ran * (allMeals.size()-1));
-		return new MealDTO(allMeals.get(selection));
+		
+		return getRandomNotAlreadySuggestedOption(sessionId, allMeals);
 	}
 
 

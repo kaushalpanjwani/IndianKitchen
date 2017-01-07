@@ -15,11 +15,11 @@ import com.indiankitchen.data.request.MealSuggestionRequest;
 import com.indiankitchen.data.request.Metadata;
 import com.indiankitchen.data.request.Parameters;
 import com.indiankitchen.data.response.MealSuggestionResponse;
-import com.indiankitchen.data.utility.MealService;
+import com.indiankitchen.data.services.MealService;
 
 @RestController
 public class MealsSuggestionController {
-	
+
 	static final Logger LOG = LoggerFactory.getLogger(MealsSuggestionController.class);
 
 	@Autowired
@@ -33,20 +33,22 @@ public class MealsSuggestionController {
 			LOG.debug("Request : Query: {} ", mealSuggestionRequest.getResult().getResolvedQuery());
 			Parameters params = mealSuggestionRequest.getResult().getParameters();
 			Metadata metadata = mealSuggestionRequest.getResult().getMetadata();
-
+			String sessionId = mealSuggestionRequest.getSessionId();
 			if (metadata != null && metadata.getIntentName() != null) {
 				LOG.debug("Request : Metadata {} ", metadata);
 				LOG.debug("Request : Params {} ", params);
 
 				if (metadata.getIntentName().equals(IntentType.SUGGEST_A_MEAL) || metadata.getIntentName().equals(IntentType.SUGGEST_ANOTHER_MEAL)) {
 					MealDTO suggestedMeal = mealsService.getSuggestedMeal(
+							sessionId,
 							DishType.getByName(params.getDishType()),
 							CuisineType.valueOf(params.getCuisine().toUpperCase()),
-							 params.getVegetable(),params.getProtein());
+							params.getVegetable(),params.getProtein());
 					if (suggestedMeal != null) {
 						speechBuilder.append("Alright, I would suggest ");
 						speechBuilder.append(suggestedMeal.getName());
-						speechBuilder.append(". Do you like it?");
+						speechBuilder.append(". If you want to get more options, say MORE OPTIONS.");
+						LOG.trace("Meals suggestion : {} for Session : {}",suggestedMeal.getName(),sessionId);
 					} else {
 						speechBuilder.append("Sorry, unfortunately I do not know any dish which is ");
 						speechBuilder.append(params.getCuisine()).append(" ");
@@ -64,7 +66,8 @@ public class MealsSuggestionController {
 							speechBuilder.append(params.getVegetable()[i]).append(" and ");
 						}
 						speechBuilder.delete(speechBuilder.length() - 5, speechBuilder.length());
-						speechBuilder.append(". Would you like to try a different combination?");
+						speechBuilder.append(". If you want to try other combinations, ask for DIFFERENT COMBINATION");
+						LOG.warn("Meals suggestion not found : {} for Session : {}",speechBuilder,sessionId);
 					}
 				} else if (metadata.getIntentName().equals(IntentType.ADD_A_MEAL)) {
 					MealDTO addedMeal = mealsService.addMeal(
@@ -74,24 +77,30 @@ public class MealsSuggestionController {
 					speechBuilder.append("Thank you! We have successfully added ");
 					speechBuilder.append(addedMeal.getName());
 				} else if (metadata.getIntentName().equals(IntentType.SURPRISE_ME)) {
-					MealDTO suggestedMeal = mealsService.getSurpriseSuggestion();
-					speechBuilder.append("How about ");
-					speechBuilder.append(suggestedMeal.getName());
-					speechBuilder.append(". It is ").append(suggestedMeal.getCuisine().name()).append(" ").append(suggestedMeal.getDishType().getName());
-					speechBuilder.append(". You would need ");
-					for (int i = 0; i < suggestedMeal.getProteins().length; i++) {
-						if (suggestedMeal.getProteins()[i].equalsIgnoreCase("None"))
+					MealDTO suggestedMeal = mealsService.getSurpriseSuggestion(sessionId);
+					if (suggestedMeal != null) {
+						speechBuilder.append("How about ");
+						speechBuilder.append(suggestedMeal.getName());
+						speechBuilder.append(". It is ").append(suggestedMeal.getCuisine().name()).append(" ").append(suggestedMeal.getDishType().getName());
+						speechBuilder.append(". You would need ");
+						for (int i = 0; i < suggestedMeal.getProteins().length; i++) {
+							if (suggestedMeal.getProteins()[i].equalsIgnoreCase("None"))
 								continue;
-						
-						speechBuilder.append(suggestedMeal.getProteins()[i]).append(" and ");
-					}
-					for (int i = 0; i < suggestedMeal.getVegetables().length; i++) {
-						if (suggestedMeal.getVegetables()[i].equalsIgnoreCase("None"))
-							continue;
 
-						speechBuilder.append(suggestedMeal.getVegetables()[i]).append(" and ");
+							speechBuilder.append(suggestedMeal.getProteins()[i]).append(" and ");
+						}
+						for (int i = 0; i < suggestedMeal.getVegetables().length; i++) {
+							if (suggestedMeal.getVegetables()[i].equalsIgnoreCase("None"))
+								continue;
+
+							speechBuilder.append(suggestedMeal.getVegetables()[i]).append(" and ");
+						}
+						speechBuilder.delete(speechBuilder.length() - 5, speechBuilder.length());
+						speechBuilder.append(". If you want another options, say SURPRISE ME.");
+						LOG.trace("Meals suggestion : {} for Session : {}",suggestedMeal.getName(),sessionId);
+					} else {
+						speechBuilder.append("Sorry, no more options to surprise you!");
 					}
-					speechBuilder.delete(speechBuilder.length() - 5, speechBuilder.length());
 				} else {
 					speechBuilder.append("Sorry, I cannot do that yet!");
 				}

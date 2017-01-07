@@ -9,10 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
-import com.indiankitchen.data.MealDTO;
-import com.indiankitchen.data.MealEntity;
 import com.indiankitchen.data.repositories.MealRepository;
-import com.indiankitchen.data.utility.MealService;
 
 
 @SpringBootApplication
