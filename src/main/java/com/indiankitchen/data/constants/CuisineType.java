@@ -5,6 +5,7 @@ public enum CuisineType {
 	INDIAN,
 	CHINESE,
 	ITALIAN,
-	THAI
+	THAI,
+	MEDITERRANEAN
 
 }

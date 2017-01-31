@@ -66,8 +66,8 @@ public class MealService {
 		List<MealEntity> mealNames = allMeals.stream()
 				.filter(m -> m.getCuisine().equals(cuisine.name()))
 				.filter(m -> m.getDishType().equals(dishType.getName()))
-				.filter(m -> Arrays.asList(m.getVegetables()).containsAll(Arrays.asList(vegetables)))
-				.filter(m -> Arrays.asList(m.getProteins()).containsAll(Arrays.asList(proteins)))
+				.filter(m -> Arrays.asList(vegetables).containsAll(Arrays.asList(m.getVegetables())))
+				.filter(m -> Arrays.asList(proteins).containsAll(Arrays.asList(m.getProteins())))
 				.collect(Collectors.toList());
 
 
