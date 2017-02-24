@@ -63,7 +63,7 @@ public class MealService {
 	public MealDTO getSuggestedMeal(String sessionId, DishType dishType, CuisineType cuisine, String[] vegetables, String[] proteins) {
 		List<MealEntity> allMeals = mealRepository.findAll();
 
-		List<MealEntity> mealNames = allMeals.stream()
+		List<MealEntity> filteredMealOptions = allMeals.stream()
 				.filter(m -> m.getCuisine().equals(cuisine.name()))
 				.filter(m -> m.getDishType().equals(dishType.getName()))
 				.filter(m -> Arrays.asList(vegetables).containsAll(Arrays.asList(m.getVegetables())))
@@ -71,7 +71,7 @@ public class MealService {
 				.collect(Collectors.toList());
 
 
-		return getRandomNotAlreadySuggestedOption(sessionId, mealNames);
+		return getRandomNotAlreadySuggestedOption(sessionId, filteredMealOptions);
 	}
 
 	private MealDTO getRandomNotAlreadySuggestedOption(String sessionId, List<MealEntity> filteredMealNames) {
@@ -117,9 +117,20 @@ public class MealService {
 	}
 
 	public MealDTO getSurpriseSuggestion(String sessionId) {
-		List<MealEntity> allMeals = mealRepository.findAll();
 		
+		LOG.trace("Surprising with no options");
+		List<MealEntity> allMeals = mealRepository.findAll();
 		return getRandomNotAlreadySuggestedOption(sessionId, allMeals);
+	}
+
+	public MealDTO getSurpriseSuggestion(String sessionId, DishType dishType) {
+		LOG.trace("Surprising with {} options",dishType.getName());
+		List<MealEntity> allMeals = mealRepository.findAll();
+		List<MealEntity> filteredMealOptions = allMeals.stream()
+				.filter(m -> m.getDishType().equals(dishType.getName()))
+				.collect(Collectors.toList());
+
+		return getRandomNotAlreadySuggestedOption(sessionId, filteredMealOptions);
 	}
 
 

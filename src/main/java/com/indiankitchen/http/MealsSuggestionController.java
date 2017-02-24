@@ -3,6 +3,7 @@ package com.indiankitchen.http;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -76,8 +77,17 @@ public class MealsSuggestionController {
 							params.getProtein(), params.getVegetable(), params.getName());
 					speechBuilder.append("Thank you! We have successfully added ");
 					speechBuilder.append(addedMeal.getName());
-				} else if (metadata.getIntentName().equals(IntentType.SURPRISE_ME)) {
-					MealDTO suggestedMeal = mealsService.getSurpriseSuggestion(sessionId);
+				} else if (metadata.getIntentName().equals(IntentType.SURPRISE_ME) || metadata.getIntentName().equals(IntentType.SURPRISE_ME_AGAIN)) {
+					MealDTO suggestedMeal = null;
+					String surpriseDishTypeFilter = params.getDishType();
+					if (!StringUtils.isEmpty(surpriseDishTypeFilter))
+					{
+						suggestedMeal = mealsService.getSurpriseSuggestion(sessionId, DishType.getByName(surpriseDishTypeFilter));
+					} 
+					else
+					{
+						suggestedMeal = mealsService.getSurpriseSuggestion(sessionId);
+					}
 					if (suggestedMeal != null) {
 						speechBuilder.append("How about ");
 						speechBuilder.append(suggestedMeal.getName());
@@ -96,7 +106,7 @@ public class MealsSuggestionController {
 							speechBuilder.append(suggestedMeal.getVegetables()[i]).append(" and ");
 						}
 						speechBuilder.delete(speechBuilder.length() - 5, speechBuilder.length());
-						speechBuilder.append(". If you want another options, say SURPRISE ME.");
+						speechBuilder.append(". If you want another options, say SURPRISE AGAIN.");
 						LOG.trace("Meals suggestion : {} for Session : {}",suggestedMeal.getName(),sessionId);
 					} else {
 						speechBuilder.append("Sorry, no more options to surprise you!");
